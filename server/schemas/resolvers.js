@@ -1,17 +1,18 @@
-const { Profile, User } = require("../models");
+// TODO
+const { User, Book } = require("../models");
 const { signToken, AuthenticationError } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    // user: async() => {
-    //   return.User.find();
-    // }
+    user: async (parent, args) => {
+      return await User.findById(args.id);
+    },
   },
 
   Mutation: {
-    // createUser: async (parent, {} => {
-    //   const user = await User.create();
-    // })
+    addUser: async (parent, { username, email, password }) => {
+      const user = await User.create({ username, email, password });
+    },
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
 
@@ -19,11 +20,22 @@ const resolvers = {
         throw AuthenticationError;
       }
 
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw AuthenticationError;
+      }
+
       const token = signToken(user);
       return { token, user };
     },
 
-    // saveBook: async (parent, {}) => {};
+    saveBook: async (parent, args) => {
+      return await Book.create(args);
+    },
+    removeBook: async (parent, { id }) => {
+      return await Book.deleteOne({ id });
+    },
   },
 };
 
