@@ -12,7 +12,7 @@ const typeDefs = `
   }
 
   input bookInfoInput {
-    author: [author]
+    authors: [authors]
     description: description
     title: title!
     bookId: bookID!
