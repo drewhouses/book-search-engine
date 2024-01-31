@@ -1,4 +1,3 @@
-// TODO
 const { User, Book } = require("../models");
 const { signToken, AuthenticationError } = require("../utils/auth");
 
@@ -40,7 +39,7 @@ const resolvers = {
       if (context.user) {
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedBooks: args.book } },
+          { $addToSet: { savedBooks: args.input } },
           { new: true, runValidators: true }
         );
         return updatedUser;
