@@ -4,14 +4,20 @@ const { signToken, AuthenticationError } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    user: async (parent, args) => {
-      return await User.findById(args.id);
+    me: async (parent, arg, context) => {
+      if (context.user) {
+        const userInfo = await User.findById(context.user._id);
+        return userInfo;
+      }
+      return AuthenticationError;
     },
   },
 
   Mutation: {
     addUser: async (parent, { username, email, password }) => {
       const user = await User.create({ username, email, password });
+      const token = signToken(user);
+      return { token, user };
     },
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
@@ -30,11 +36,27 @@ const resolvers = {
       return { token, user };
     },
 
-    saveBook: async (parent, args) => {
-      return await Book.create(args);
+    saveBook: async (parent, args, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: args.book } },
+          { new: true, runValidators: true }
+        );
+        return updatedUser;
+      }
+      return AuthenticationError;
     },
-    removeBook: async (parent, { id }) => {
-      return await Book.deleteOne({ id });
+    removeBook: async (parent, args, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId: args.bookId } } },
+          { new: true }
+        );
+        return updatedUser;
+      }
+      return AuthenticationError;
     },
   },
 };
